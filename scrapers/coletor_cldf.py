@@ -30,8 +30,8 @@ load_dotenv()
 setup_logging()
 log = logging.getLogger("agora.cldf")
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+SUPABASE_URL = os.environ["SUPABASE_URL"].strip()
+SUPABASE_KEY = os.environ["SUPABASE_KEY"].strip()
 
 API_BASE = "https://ple.cl.df.gov.br/pleservico/api/public"
 
@@ -59,8 +59,8 @@ def buscar_temas_oficiais(sessao) -> dict[int, str]:
 
     alvo = {}
     for t in temas:
-        nome = (t.get("nome") or t.get("descricao") or "").strip()
-        codigo = t.get("id") or t.get("codigo")
+        nome = (t.get("label") or t.get("nome") or t.get("descricao") or "").strip()
+        codigo = t.get("value") or t.get("id") or t.get("codigo")
         if codigo is None or not nome:
             continue
         if any(alvo_nome in nome.lower() for alvo_nome in TEMAS_ALVO):
