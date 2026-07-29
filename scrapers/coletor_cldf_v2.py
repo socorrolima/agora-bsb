@@ -231,10 +231,31 @@ def main():
     sessao = criar_sessao()
 
     try:
-        temas = buscar_temas_oficiais(sessao)
+        # Busca catalogo completo para ver todos os temas
+        resp = sessao.get(f"{API_BASE}/tema", timeout=30)
+        resp.raise_for_status()
+        todos = resp.json()
+        if not isinstance(todos, list):
+            todos = todos.get("content", todos.get("items", []))
+
+        # Loga TODOS os temas linha a linha
+        log.info(f"Total de temas no catalogo: {len(todos)}")
+        for t in todos:
+            log.info(f"  TEMA value={t.get('value')} label='{t.get('label')}'")
+
+        # Filtra saude e educacao por qualquer variacao
+        temas = {}
+        for t in todos:
+            label = (t.get("label") or "").strip()
+            value = t.get("value")
+            label_norm = normalizar_str(label)
+            if "saude" in label_norm or "educac" in label_norm:
+                temas[value] = label
+                log.info(f"  SELECIONADO: {value} = {label}")
+
         if not temas:
-            registrar_coleta(supabase, "CLDF", "erro", 0,
-                             "Catálogo de temas vazio — verificar API")
+            log.error("Nenhum tema de saude ou educacao encontrado")
+            registrar_coleta(supabase, "CLDF", "erro", 0, "temas nao encontrados")
             sys.exit(1)
 
         from datetime import datetime
