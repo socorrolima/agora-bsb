@@ -33,8 +33,8 @@ load_dotenv()
 setup_logging()
 log = logging.getLogger("agora.dodf")
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+SUPABASE_URL = os.environ["SUPABASE_URL"].strip()
+SUPABASE_KEY = os.environ["SUPABASE_KEY"].strip()
 
 DODF_BASE = "https://dodf.df.gov.br"
 # Endpoints candidatos do buscador interno — o coletor testa em ordem.
