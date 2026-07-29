@@ -231,11 +231,29 @@ def main():
     sessao = criar_sessao()
 
     try:
+        # Busca o catalogo completo para log de diagnostico
+        resp = sessao.get(f"{API_BASE}/tema", timeout=30)
+        resp.raise_for_status()
+        todos_temas = resp.json()
+        if not isinstance(todos_temas, list):
+            todos_temas = todos_temas.get("content", todos_temas.get("items", []))
+        log.info(f"CATALOGO COMPLETO ({len(todos_temas)} temas):")
+        for t in todos_temas:
+            log.info(f"  value={t.get('value')} label={t.get('label')}")
+
+        # Busca temas dinamicamente
         temas = buscar_temas_oficiais(sessao)
+
+        # Fallback: se nao encontrou, usa os labels exatos do log acima
         if not temas:
-            registrar_coleta(supabase, "CLDF", "erro", 0,
-                             "Catálogo de temas vazio — verificar API")
-            sys.exit(1)
+            log.warning("Usando fallback — ajustar TEMAS_ALVO apos ver o log")
+            temas = {}
+            for t in todos_temas:
+                label = (t.get("label") or "").strip()
+                value = t.get("value")
+                if value and label:
+                    temas[value] = label
+            log.info(f"Todos os temas para busca: {temas}")
 
         from datetime import datetime
         ano_atual = datetime.now().year
