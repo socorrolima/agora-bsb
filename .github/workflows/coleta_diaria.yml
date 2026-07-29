@@ -23,7 +23,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python scrapers/coletor_cldf.py
+        run: python scrapers/coletor_cldf_v2.py
 
       - name: Coletor DODF
         env:
