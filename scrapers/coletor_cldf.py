@@ -59,6 +59,7 @@ def buscar_temas_oficiais(sessao) -> dict[int, str]:
 
     alvo = {}
     for t in temas:
+        # API retorna {value, label} — com fallback para {id, nome} e {codigo, descricao}
         nome = (t.get("label") or t.get("nome") or t.get("descricao") or "").strip()
         codigo = t.get("value") or t.get("id") or t.get("codigo")
         if codigo is None or not nome:
