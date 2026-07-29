@@ -38,7 +38,14 @@ API_BASE = "https://ple.cl.df.gov.br/pleservico/api/public"
 # Nomes de temas oficiais da CLDF que interessam ao projeto.
 # Comparação é case-insensitive por substring — cobre variações
 # como "Educação", "Educação e Cultura" etc.
-TEMAS_ALVO = ["saúde", "educação"]
+import unicodedata
+
+TEMAS_ALVO = ["saude", "educacao"]
+
+
+def normalizar_str(s: str) -> str:
+    """Remove acentos e coloca em minúsculas para comparação robusta."""
+    return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
 
 PAGE_SIZE = 50
 MAX_PAGINAS = 200          # trava de segurança
@@ -64,9 +71,10 @@ def buscar_temas_oficiais(sessao) -> dict[int, str]:
         codigo = t.get("value") or t.get("id") or t.get("codigo")
         if codigo is None or not nome:
             continue
-        if any(alvo_nome in nome.lower() for alvo_nome in TEMAS_ALVO):
+        if any(alvo_nome in normalizar_str(nome) for alvo_nome in TEMAS_ALVO):
             alvo[codigo] = nome
 
+    log.info(f"Catálogo completo de temas: {temas}")
     log.info(f"Temas oficiais encontrados: {alvo}")
     if not alvo:
         log.warning(
@@ -78,10 +86,10 @@ def buscar_temas_oficiais(sessao) -> dict[int, str]:
 
 def normalizar_tema_local(nome_tema_oficial: str) -> str:
     """Mapeia o nome oficial da CLDF para as categorias internas do painel."""
-    nome = nome_tema_oficial.lower()
-    if "saúde" in nome:
+    nome = normalizar_str(nome_tema_oficial)
+    if "saude" in nome:
         return "saude"
-    if "educação" in nome:
+    if "educacao" in nome:
         return "educacao"
     return "outro"
 
