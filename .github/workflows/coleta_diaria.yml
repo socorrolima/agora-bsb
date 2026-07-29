@@ -19,7 +19,7 @@ jobs:
 
       - run: pytest tests/ -v
 
-      - name: Coletor CLDF
+      - name: Coletor CLDF v2
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
