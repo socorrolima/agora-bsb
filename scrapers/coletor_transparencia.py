@@ -29,8 +29,8 @@ load_dotenv()
 setup_logging()
 log = logging.getLogger("agora.transparencia")
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+SUPABASE_URL = os.environ["SUPABASE_URL"].strip()
+SUPABASE_KEY = os.environ["SUPABASE_KEY"].strip()
 
 BASE = "https://www.transparencia.df.gov.br"
 ANO = datetime.now().year
