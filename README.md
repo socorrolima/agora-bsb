@@ -51,3 +51,5 @@ Ver `docs/configuracao.md` da v1 — passos idênticos, mas use o
    a issue automática + o log diagnóstico mostram o que ajustar.
 3. Emendas parlamentares no DF têm transparência historicamente
    incompleta — pode ser necessário complementar com o SIGGO/TCDF.
+
+   TESTE
