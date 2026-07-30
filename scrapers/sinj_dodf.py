@@ -20,6 +20,8 @@ import os
 import sys
 import time
 import logging
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sys.path.insert(0, os.path.dirname(__file__))
 from comum import agora_utc, criar_sessao, registrar_coleta, setup_logging, hash_texto
@@ -64,7 +66,7 @@ def buscar_sinj(sessao, params: dict, pagina: int = 1) -> list[dict]:
     url = f"{SINJ_BASE}/norma"
     p = {**params, "pagina": pagina, "quantidade": 20}
     try:
-        resp = sessao.get(url, params=p, timeout=30)
+        resp = sessao.get(url, params=p, timeout=30, verify=False)
         if resp.status_code != 200:
             log.warning(f"SINJ status {resp.status_code} params={params}")
             return []
