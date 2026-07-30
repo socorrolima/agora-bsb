@@ -1,194 +1,199 @@
 """
-Agora BsB - Coletor CLDF v2
-API oficial do PLE: https://ple.cl.df.gov.br/pleservico/api/public
+Agora BsB - Coletor DODF v3
 
-Temas confirmados em 29/07/2026:
-  value=15 label='Educacao'
-  value=24 label='Saude'
+O portal dodf.df.gov.br bloqueia conexoes de IPs externos (GitHub Actions).
+Alternativa: SINJ-DF (sinj.df.gov.br) — sistema de normas juridicas do DF
+que indexa toda legislacao publicada no DODF, com API REST publica e
+acessivel de qualquer IP.
+
+API SINJ-DF:
+  Base: https://sinj.df.gov.br/sinj/api
+  /norma?tipo=Portaria&orgao=SES&pagina=1
+  /norma?tipo=Decreto&palavraChave=educacao&pagina=1
+
+Vantagem: dados estruturados, sem bloqueio geografico, sem autenticacao.
+Limitacao: indexa normas (portarias, decretos, resolucoes) — nao atos
+           administrativos menores como editais e avisos.
 """
 
 import os
 import sys
 import time
 import logging
-import unicodedata
 
 sys.path.insert(0, os.path.dirname(__file__))
-from comum import agora_utc, criar_sessao, registrar_coleta, setup_logging
+from comum import agora_utc, criar_sessao, registrar_coleta, setup_logging, hash_texto
 
 from supabase import create_client
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 
 load_dotenv()
 setup_logging()
-log = logging.getLogger("agora.cldf")
+log = logging.getLogger("agora.dodf")
 
 SUPABASE_URL = os.environ["SUPABASE_URL"].strip()
 SUPABASE_KEY = os.environ["SUPABASE_KEY"].strip()
 
-API_BASE = "https://ple.cl.df.gov.br/pleservico/api/public"
+SINJ_BASE = "https://sinj.df.gov.br/sinj/api"
 
-# Codigos confirmados pela API da CLDF
-TEMAS_FIXOS = {
-    15: "Educacao",
-    24: "Saude",
+# Orgaos e palavras-chave por tema
+CONSULTAS = {
+    "saude": [
+        {"orgao": "Secretaria de Estado de Saude do Distrito Federal"},
+        {"orgao": "SES-DF"},
+        {"palavraChave": "atencao primaria"},
+        {"palavraChave": "saude mental"},
+        {"palavraChave": "hospital"},
+    ],
+    "educacao": [
+        {"orgao": "Secretaria de Estado de Educacao do Distrito Federal"},
+        {"orgao": "SEEDF"},
+        {"palavraChave": "merenda escolar"},
+        {"palavraChave": "rede publica ensino"},
+        {"palavraChave": "creche"},
+    ],
 }
 
-PAGE_SIZE = 50
-MAX_PAGINAS = 200
-PAUSA_ENTRE_PAGINAS = 1.5
+TIPOS = ["Portaria", "Decreto", "Resolucao", "Instrucao Normativa"]
+PAUSA = 1.0
 
 
-def normalizar_str(s):
-    return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
+def buscar_sinj(sessao, params: dict, pagina: int = 1) -> list[dict]:
+    """Consulta a API do SINJ-DF."""
+    url = f"{SINJ_BASE}/norma"
+    p = {**params, "pagina": pagina, "quantidade": 20}
+    try:
+        resp = sessao.get(url, params=p, timeout=30)
+        if resp.status_code != 200:
+            log.warning(f"SINJ status {resp.status_code} params={params}")
+            return []
+        dados = resp.json()
+        # SINJ pode retornar lista ou {content: [...]}
+        if isinstance(dados, list):
+            return dados
+        for chave in ("content", "items", "normas", "data", "results"):
+            if chave in dados:
+                return dados[chave]
+        log.warning(f"DIAGNOSTICO SINJ — estrutura desconhecida: {str(dados)[:300]}")
+        return []
+    except Exception as e:
+        log.error(f"Erro SINJ params={params}: {e}")
+        return []
 
 
-def normalizar_tema_local(nome_tema):
-    nome = normalizar_str(nome_tema)
-    if "saude" in nome:
-        return "saude"
-    if "educac" in nome:
-        return "educacao"
-    return "outro"
+def normalizar(item: dict, tema: str) -> dict | None:
+    """Converte resposta do SINJ para o schema do banco."""
+    numero = (
+        item.get("numero") or item.get("id")
+        or item.get("identificacao") or ""
+    )
+    tipo = (
+        item.get("tipo") or item.get("tipoNorma")
+        or item.get("especie") or "Publicacao"
+    )
+    descricao = (
+        item.get("ementa") or item.get("descricao")
+        or item.get("texto") or item.get("titulo") or ""
+    )
+    orgao = (
+        item.get("orgao") or item.get("orgaoEmissor")
+        or item.get("secretaria") or ""
+    )
+    data = (
+        item.get("data") or item.get("dataPublicacao")
+        or item.get("dataAssinatura") or None
+    )
+    link = (
+        item.get("link") or item.get("url")
+        or item.get("urlDodf") or ""
+    )
 
-
-def buscar_proposicoes_por_tema(sessao, codigo_tema, nome_tema, ano):
-    todas = []
-    pagina = 0
-
-    while pagina < MAX_PAGINAS:
-        payload = {"tema": str(codigo_tema), "ano": str(ano)}
-        params = {"page": pagina, "size": PAGE_SIZE, "sort": "dataLeitura,DESC"}
-
-        try:
-            resp = sessao.post(
-                f"{API_BASE}/proposicao/filter",
-                json=payload,
-                params=params,
-                timeout=45,
-            )
-            resp.raise_for_status()
-            dados = resp.json()
-        except Exception as e:
-            log.error(f"Erro tema={nome_tema} ano={ano} pagina={pagina}: {e}")
-            break
-
-        items = dados.get("content", dados if isinstance(dados, list) else [])
-        if not items:
-            break
-
-        for p in items:
-            prop = normalizar_proposicao(p, nome_tema)
-            if prop:
-                todas.append(prop)
-
-        ultima = dados.get("last", len(items) < PAGE_SIZE)
-        if ultima:
-            break
-
-        pagina += 1
-        time.sleep(PAUSA_ENTRE_PAGINAS)
-
-    log.info(f"Tema '{nome_tema}' ano {ano}: {len(todas)} proposicoes")
-    return todas
-
-
-def normalizar_proposicao(p, nome_tema):
-    prop_id = p.get("id")
-    numero = p.get("numero") or p.get("numeroProposicao")
-    tipo = p.get("tipoProposicao") or p.get("tipo") or ""
-    if isinstance(tipo, dict):
-        tipo = tipo.get("nome", tipo.get("descricao", ""))
-    if not (prop_id or numero):
+    if not descricao and not numero:
         return None
 
-    ementa = p.get("ementa") or p.get("texto") or ""
-    ano = p.get("ano")
-
-    autores = p.get("autores") or p.get("autoria") or []
-    if isinstance(autores, list):
-        nomes_autores = ", ".join(
-            a.get("nome", str(a)) if isinstance(a, dict) else str(a)
-            for a in autores
-        )
-    else:
-        nomes_autores = str(autores)
-
-    situacao = p.get("situacao") or p.get("status") or ""
-    if isinstance(situacao, dict):
-        situacao = situacao.get("nome", situacao.get("descricao", ""))
-
-    chave = f"{tipo} {numero}/{ano}".strip() if numero else f"PLE-{prop_id}"
+    chave = str(numero) if numero else hash_texto(str(descricao))
 
     return {
-        "numero": chave,
-        "ple_id": prop_id,
-        "tipo": str(tipo)[:80],
-        "ementa": str(ementa)[:800],
-        "autor": nomes_autores[:300],
-        "temas": [normalizar_tema_local(nome_tema)],
-        "tema_oficial": nome_tema,
-        "status": str(situacao)[:120],
-        "ano": ano,
-        "link": f"https://ple.cl.df.gov.br/#/publico/proposicao/{prop_id}" if prop_id else None,
-        "fonte": "CLDF",
+        "numero": chave[:100],
+        "tipo": str(tipo)[:60],
+        "descricao": str(descricao)[:800],
+        "secretaria": str(orgao)[:200],
+        "data_publicacao": data,
+        "link": str(link),
+        "temas": [tema],
+        "fonte": "DODF",
         "coletado_em": agora_utc(),
     }
 
 
-def deduplicar(proposicoes):
-    por_chave = {}
-    for p in proposicoes:
-        chave = p["numero"]
-        if chave in por_chave:
-            for t in p["temas"]:
-                if t not in por_chave[chave]["temas"]:
-                    por_chave[chave]["temas"].append(t)
-        else:
-            por_chave[chave] = p
-    return list(por_chave.values())
+def coletar(sessao) -> list[dict]:
+    """Coleta publicacoes do SINJ-DF dos ultimos 30 dias."""
+    unicos: dict[str, dict] = {}
+
+    for tema, consultas in CONSULTAS.items():
+        for consulta in consultas:
+            items = buscar_sinj(sessao, consulta)
+            log.info(f"SINJ {consulta} ({tema}): {len(items)} resultados")
+
+            for item in items:
+                pub = normalizar(item, tema)
+                if not pub:
+                    continue
+                chave = pub["numero"]
+                if chave in unicos:
+                    if tema not in unicos[chave]["temas"]:
+                        unicos[chave]["temas"].append(tema)
+                else:
+                    unicos[chave] = pub
+
+            time.sleep(PAUSA)
+
+    log.info(f"Total unico DODF/SINJ: {len(unicos)}")
+    return list(unicos.values())
 
 
-def salvar(supabase, proposicoes):
-    if not proposicoes:
+def salvar(supabase, publicacoes: list[dict]) -> int:
+    if not publicacoes:
         return 0
     salvos = 0
-    for i in range(0, len(proposicoes), 50):
-        bloco = proposicoes[i:i + 50]
+    for i in range(0, len(publicacoes), 50):
+        bloco = publicacoes[i:i + 50]
         try:
-            supabase.table("proposicoes").upsert(
+            supabase.table("publicacoes_dodf").upsert(
                 bloco, on_conflict="numero,fonte"
             ).execute()
             salvos += len(bloco)
         except Exception as e:
-            log.error(f"Erro ao salvar lote: {e}")
+            log.error(f"Erro ao salvar: {e}")
     return salvos
 
 
 def main():
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     sessao = criar_sessao()
+    # SINJ nao exige Accept especifico mas JSON e o padrao
+    sessao.headers["Accept"] = "application/json"
 
     try:
-        log.info(f"Iniciando coleta CLDF com temas: {TEMAS_FIXOS}")
-        ano_atual = datetime.now().year
-        anos = [ano_atual, ano_atual - 1]
+        publicacoes = coletar(sessao)
 
-        todas = []
-        for codigo, nome in TEMAS_FIXOS.items():
-            for ano in anos:
-                todas.extend(buscar_proposicoes_por_tema(sessao, codigo, nome, ano))
+        if not publicacoes:
+            log.warning(
+                "Nenhum resultado do SINJ-DF. "
+                "Verificar se https://sinj.df.gov.br/sinj/api/norma responde. "
+                "Alternativa: usar Jusbrasil RSS ou download mensal do DODF."
+            )
+            registrar_coleta(supabase, "DODF", "vazio", 0,
+                             "SINJ sem resultados — verificar endpoint")
+            return
 
-        unicas = deduplicar(todas)
-        salvos = salvar(supabase, unicas)
-
-        status = "ok" if salvos > 0 else "vazio"
-        registrar_coleta(supabase, "CLDF", status, salvos)
-        log.info(f"Coleta CLDF finalizada: {salvos} registros salvos")
+        salvos = salvar(supabase, publicacoes)
+        registrar_coleta(supabase, "DODF", "ok" if salvos else "vazio", salvos)
+        log.info(f"Coleta DODF finalizada: {salvos} registros")
 
     except Exception as e:
-        registrar_coleta(supabase, "CLDF", "erro", 0, str(e))
+        registrar_coleta(supabase, "DODF", "erro", 0, str(e))
         raise
 
 
