@@ -174,6 +174,7 @@ def salvar(supabase, publicacoes: list[dict]) -> int:
 def main():
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     sessao = criar_sessao()
+    sessao.verify = False
     # SINJ nao exige Accept especifico mas JSON e o padrao
     sessao.headers["Accept"] = "application/json"
 
