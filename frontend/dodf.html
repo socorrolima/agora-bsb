@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário Oficial — Ágora BsB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#F5F2EB;--bg2:#EDE9DF;--ink:#1A1714;--ink2:#4A4540;--ink3:#8A8178;--border:#D4CEC4;--card:#FDFAF5;--saude:#C84B2F;--educacao:#1B4F8A;--radius:4px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Newsreader',Georgia,serif;background:var(--bg);color:var(--ink)}
+.masthead{border-bottom:2px solid var(--ink);padding:0 2rem;background:var(--bg);position:sticky;top:0;z-index:100}
+.masthead-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:1rem 0;flex-wrap:wrap}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem}
+.logo-sub{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--ink3);letter-spacing:0.05em;text-transform:uppercase}
+.nav-link{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:99px}
+.nav-link:hover,.nav-link.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.wrap{max-width:1200px;margin:0 auto;padding:2rem}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-1px;margin-bottom:4px}
+.page-sub{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3);margin-bottom:1.5rem}
+
+.filtros{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.pill{font-family:'DM Mono',monospace;font-size:0.7rem;padding:5px 12px;border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--ink2);cursor:pointer;transition:all 0.15s}
+.pill:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.saude.active{background:var(--saude);border-color:var(--saude);color:white}
+.pill.educacao.active{background:var(--educacao);border-color:var(--educacao);color:white}
+.search-input{font-family:'Newsreader',serif;font-size:0.9rem;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--ink);outline:none;min-width:220px}
+.search-input:focus{border-color:var(--ink)}
+.sort-sel{font-family:'DM Mono',monospace;font-size:0.7rem;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--ink2);cursor:pointer}
+
+.section-head{font-family:'Syne',sans-serif;font-weight:600;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.count-badge{font-family:'DM Mono',monospace;font-size:0.65rem;background:var(--bg2);padding:2px 8px;border-radius:99px;color:var(--ink3)}
+
+.dodf-list{display:flex;flex-direction:column}
+.dodf-item{background:var(--card);border:1px solid var(--border);border-bottom:none;padding:1rem 1.25rem;cursor:pointer;transition:background 0.1s;position:relative}
+.dodf-item:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.dodf-item:last-child{border-bottom:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius)}
+.dodf-item:hover{background:var(--bg2)}
+.dodf-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--radius) 0 0 var(--radius)}
+.dodf-item.saude::before{background:var(--saude)}
+.dodf-item.educacao::before{background:var(--educacao)}
+.dodf-item.ambos::before{background:linear-gradient(var(--saude),var(--educacao))}
+
+.item-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px}
+.item-tipo{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--ink3);white-space:nowrap;margin-top:2px;flex-shrink:0}
+.item-desc{font-size:0.9rem;line-height:1.45;color:var(--ink)}
+.item-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.tag{font-family:'DM Mono',monospace;font-size:0.6rem;padding:2px 7px;border-radius:2px}
+.tag.saude{background:#FDE8E3;color:var(--saude)}
+.tag.educacao{background:#E3EBF7;color:var(--educacao)}
+.tag.tipo{background:var(--bg2);color:var(--ink3)}
+.item-secretaria{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--ink3)}
+.item-link{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--educacao);text-decoration:none;margin-left:auto}
+.item-link:hover{text-decoration:underline}
+.item-data{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--ink3)}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:10px}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3)}
+.empty{text-align:center;padding:3rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--ink3)}
+
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:1rem}
+.page-btn{font-family:'DM Mono',monospace;font-size:0.7rem;padding:5px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--ink2);cursor:pointer}
+.page-btn:hover:not(:disabled){background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.page-btn:disabled{opacity:0.4;cursor:default}
+.page-info{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--ink3)}
+
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.stat{background:var(--card);padding:1rem 1.25rem}
+.stat-n{font-family:'Syne',sans-serif;font-weight:700;font-size:1.75rem;line-height:1}
+.stat-n.saude{color:var(--saude)}
+.stat-n.educacao{color:var(--educacao)}
+.stat-label{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:0.05em;margin-top:4px}
+
+@media(max-width:600px){.wrap{padding:1rem}.masthead{padding:0 1rem}.stats-bar{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div><div class="logo-name">Ágora BsB</div><div class="logo-sub">Monitoramento Legislativo · DF</div></div>
+    <a class="nav-link" href="index.html">← Painel</a>
+    <a class="nav-link" href="parlamentares.html">Parlamentares</a>
+    <a class="nav-link active" href="dodf.html">Diário Oficial</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-title">Diário Oficial do DF</div>
+  <div class="page-sub">Publicações de saúde e educação · SES-DF e SEEDF · Atualizado diariamente</div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-n" id="stat-total">—</div><div class="stat-label">Total de publicações</div></div>
+    <div class="stat"><div class="stat-n saude" id="stat-saude">—</div><div class="stat-label">Saúde</div></div>
+    <div class="stat"><div class="stat-n educacao" id="stat-educ">—</div><div class="stat-label">Educação</div></div>
+  </div>
+
+  <div class="filtros">
+    <input class="search-input" id="q" type="search" placeholder="Buscar por título, tipo, secretaria..." oninput="debounce()">
+    <button class="pill active" data-tema="todos" onclick="setTema(this)">Todos</button>
+    <button class="pill saude" data-tema="saude" onclick="setTema(this)">Saúde</button>
+    <button class="pill educacao" data-tema="educacao" onclick="setTema(this)">Educação</button>
+    <select class="sort-sel" id="sort" onchange="renderLista()">
+      <option value="data">Mais recente</option>
+      <option value="tipo">Tipo A-Z</option>
+      <option value="secretaria">Secretaria A-Z</option>
+    </select>
+  </div>
+
+  <div class="section-head">
+    Publicações
+    <span class="count-badge" id="feed-count">—</span>
+  </div>
+  <div id="lista"><div class="loading"><div class="spinner"></div><div class="loading-text">Carregando publicações...</div></div></div>
+  <div class="pagination" id="paginacao"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://vlvoyxgwcxmenbsqhsdf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsdm95eGd3Y3htZW5ic3Foc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzAwNTIsImV4cCI6MjEwMDkwNjA1Mn0.ciHVtlB7YpbWkUzrJVaFMvUqw9WG2fxO5E7gUOj-qDk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let dados = [];
+let filtrado = [];
+let temaAtivo = 'todos';
+let pagina = 0;
+const POR_PAG = 25;
+let debTimer;
+
+async function init() {
+  const { data, error } = await sb
+    .from('publicacoes_dodf')
+    .select('numero,tipo,descricao,secretaria,data_publicacao,link,temas')
+    .order('data_publicacao', { ascending: false })
+    .limit(2000);
+
+  if (error || !data) {
+    document.getElementById('lista').innerHTML = '<div class="empty">Erro ao carregar dados.</div>';
+    return;
+  }
+
+  dados = data;
+
+  const total = dados.length;
+  const saude = dados.filter(p => p.temas?.includes('saude')).length;
+  const educ = dados.filter(p => p.temas?.includes('educacao')).length;
+
+  animNum('stat-total', total);
+  animNum('stat-saude', saude);
+  animNum('stat-educ', educ);
+
+  renderLista();
+}
+
+function animNum(id, val) {
+  const el = document.getElementById(id);
+  let cur = 0;
+  const step = Math.ceil(val / 30);
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, val);
+    el.textContent = cur.toLocaleString('pt-BR');
+    if (cur >= val) clearInterval(t);
+  }, 30);
+}
+
+function setTema(btn) {
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  temaAtivo = btn.dataset.tema;
+  pagina = 0;
+  renderLista();
+}
+
+function debounce() {
+  clearTimeout(debTimer);
+  debTimer = setTimeout(() => { pagina = 0; renderLista(); }, 300);
+}
+
+function renderLista() {
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const sort = document.getElementById('sort').value;
+
+  filtrado = dados.filter(p => {
+    const temaTok = temaAtivo === 'todos' || p.temas?.includes(temaAtivo);
+    if (!temaTok) return false;
+    if (!q) return true;
+    return (
+      (p.descricao || '').toLowerCase().includes(q) ||
+      (p.tipo || '').toLowerCase().includes(q) ||
+      (p.secretaria || '').toLowerCase().includes(q)
+    );
+  });
+
+  filtrado.sort((a, b) => {
+    if (sort === 'tipo') return (a.tipo || '').localeCompare(b.tipo || '');
+    if (sort === 'secretaria') return (a.secretaria || '').localeCompare(b.secretaria || '');
+    return (b.data_publicacao || '').localeCompare(a.data_publicacao || '');
+  });
+
+  document.getElementById('feed-count').textContent = filtrado.length.toLocaleString('pt-BR');
+
+  const inicio = pagina * POR_PAG;
+  const pag_data = filtrado.slice(inicio, inicio + POR_PAG);
+
+  if (!pag_data.length) {
+    document.getElementById('lista').innerHTML = '<div class="empty">Nenhuma publicação encontrada.</div>';
+    document.getElementById('paginacao').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('lista').innerHTML = pag_data.map(p => {
+    const temas = p.temas || [];
+    const cls = temas.includes('saude') && temas.includes('educacao') ? 'ambos'
+      : temas.includes('saude') ? 'saude' : 'educacao';
+
+    const tags = temas.map(t =>
+      `<span class="tag ${t}">${t === 'saude' ? 'Saúde' : 'Educação'}</span>`
+    ).join('');
+
+    const desc = (p.descricao || '').replace(/\n/g, ' ').slice(0, 200);
+    const data = p.data_publicacao ? new Date(p.data_publicacao + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+
+    return `<div class="dodf-item ${cls}">
+      <div class="item-header">
+        <span class="item-tipo">${p.tipo || 'Publicação'}</span>
+        <span class="item-desc">${desc}${desc.length >= 200 ? '...' : ''}</span>
+      </div>
+      <div class="item-meta">
+        ${tags}
+        ${p.secretaria ? `<span class="item-secretaria">${p.secretaria.split('>')[0].trim().slice(0,60)}</span>` : ''}
+        ${data ? `<span class="item-data">${data}</span>` : ''}
+        ${p.link ? `<a class="item-link" href="${p.link}" target="_blank" rel="noopener">↗ ver no DODF</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalPags = Math.ceil(filtrado.length / POR_PAG);
+  if (totalPags <= 1) { document.getElementById('paginacao').innerHTML = ''; return; }
+  document.getElementById('paginacao').innerHTML = `
+    <button class="page-btn" onclick="irPag(${pagina-1})" ${pagina===0?'disabled':''}>← Anterior</button>
+    <span class="page-info">${pagina+1} / ${totalPags}</span>
+    <button class="page-btn" onclick="irPag(${pagina+1})" ${pagina>=totalPags-1?'disabled':''}>Próxima →</button>`;
+}
+
+function irPag(n) {
+  pagina = n;
+  renderLista();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+init();
+</script>
+</body>
+</html>
