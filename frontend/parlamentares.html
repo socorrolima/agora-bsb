@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parlamentares — Ágora BsB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#F5F2EB;--bg2:#EDE9DF;--ink:#1A1714;--ink2:#4A4540;
+  --ink3:#8A8178;--border:#D4CEC4;--card:#FDFAF5;
+  --saude:#C84B2F;--educacao:#1B4F8A;--radius:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Newsreader',Georgia,serif;background:var(--bg);color:var(--ink)}
+
+.masthead{border-bottom:2px solid var(--ink);padding:0 2rem;background:var(--bg);position:sticky;top:0;z-index:100}
+.masthead-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:1rem 0}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem}
+.logo-sub{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--ink3);letter-spacing:0.05em;text-transform:uppercase}
+.nav-link{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:99px}
+.nav-link:hover,.nav-link.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.wrap{max-width:1200px;margin:0 auto;padding:2rem}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-1px;margin-bottom:4px}
+.page-sub{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3);margin-bottom:1.5rem}
+
+.filtros{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.pill{font-family:'DM Mono',monospace;font-size:0.7rem;padding:5px 12px;border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--ink2);cursor:pointer;transition:all 0.15s}
+.pill:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.saude.active{background:var(--saude);border-color:var(--saude);color:white}
+.pill.educacao.active{background:var(--educacao);border-color:var(--educacao);color:white}
+.search-input{font-family:'Newsreader',serif;font-size:0.9rem;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--ink);outline:none;min-width:200px}
+.search-input:focus{border-color:var(--ink)}
+
+.parl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:2rem}
+.parl-card{background:var(--card);padding:1.25rem;cursor:pointer;transition:background 0.1s;display:flex;flex-direction:column;gap:10px}
+.parl-card:hover{background:var(--bg2)}
+
+.parl-top{display:flex;align-items:center;gap:12px}
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:var(--ink3)}
+.avatar img{width:100%;height:100%;object-fit:cover;object-position:top}
+.parl-nome{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;line-height:1.2}
+.parl-partido{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--ink3);margin-top:2px}
+
+.parl-stats{display:flex;gap:6px;flex-wrap:wrap}
+.stat-pill{font-family:'DM Mono',monospace;font-size:0.62rem;padding:3px 9px;border-radius:99px}
+.stat-pill.saude{background:#FDE8E3;color:var(--saude)}
+.stat-pill.educacao{background:#E3EBF7;color:var(--educacao)}
+.stat-pill.total{background:var(--bg2);color:var(--ink3)}
+
+.parl-bar{height:3px;background:var(--bg2);border-radius:2px;overflow:hidden;display:flex;gap:1px}
+.bar-s{background:var(--saude);height:100%}
+.bar-e{background:var(--educacao);height:100%}
+
+.empty{text-align:center;padding:3rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--ink3);grid-column:1/-1}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:10px;grid-column:1/-1}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,23,20,0.7);z-index:200;backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:680px;max-height:88vh;overflow-y:auto;position:relative}
+
+.modal-header{padding:1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:10;display:flex;align-items:flex-start;gap:1rem}
+.modal-avatar{width:64px;height:64px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--ink3)}
+.modal-avatar img{width:100%;height:100%;object-fit:cover;object-position:top}
+.modal-nome{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;line-height:1.2}
+.modal-partido-txt{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--ink3);margin-top:4px}
+.modal-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.modal-close{margin-left:auto;background:none;border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--ink3);cursor:pointer;padding:4px 10px;flex-shrink:0}
+.modal-close:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.modal-body{padding:1.5rem}
+.modal-section-title{font-family:'Syne',sans-serif;font-weight:600;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.prop-mini{padding:0.75rem 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.prop-mini:last-child{border-bottom:none}
+.prop-mini-num{font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--ink3)}
+.prop-mini-ementa{font-size:0.85rem;line-height:1.45;color:var(--ink)}
+.prop-mini-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.tag{font-family:'DM Mono',monospace;font-size:0.58rem;padding:2px 6px;border-radius:2px}
+.tag.saude{background:#FDE8E3;color:var(--saude)}
+.tag.educacao{background:#E3EBF7;color:var(--educacao)}
+.tag.tipo{background:var(--bg2);color:var(--ink3)}
+.prop-mini-link{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--educacao);text-decoration:none}
+.prop-mini-link:hover{text-decoration:underline}
+.modal-empty{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--ink3);padding:0.75rem 0}
+
+@media(max-width:600px){.parl-grid{grid-template-columns:1fr}.wrap{padding:1rem}.masthead{padding:0 1rem}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div><div class="logo-name">Ágora BsB</div><div class="logo-sub">Monitoramento Legislativo · DF</div></div>
+    <a class="nav-link" href="index.html">← Painel</a>
+    <a class="nav-link active" href="parlamentares.html">Parlamentares</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-title">Parlamentares</div>
+  <div class="page-sub">CLDF 9ª Legislatura 2023–2026 · projetos em saúde e educação · fotos: CLDF</div>
+
+  <div class="filtros">
+    <input class="search-input" id="q" type="search" placeholder="Buscar nome ou partido..." oninput="render()">
+    <button class="pill active" data-tema="todos" onclick="setTema(this)">Todos</button>
+    <button class="pill saude" data-tema="saude" onclick="setTema(this)">Saúde</button>
+    <button class="pill educacao" data-tema="educacao" onclick="setTema(this)">Educação</button>
+    <button class="pill" data-tema="ambos" onclick="setTema(this)">Ambos os temas</button>
+  </div>
+
+  <div class="parl-grid" id="grid">
+    <div class="loading"><div class="spinner"></div><div class="loading-text">Carregando...</div></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="fecharModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-avatar" id="m-avatar"></div>
+      <div style="flex:1;min-width:0">
+        <div class="modal-nome" id="m-nome"></div>
+        <div class="modal-partido-txt" id="m-partido"></div>
+        <div class="modal-stats" id="m-stats"></div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()">✕ fechar</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">Projetos de Saúde <span id="m-count-saude"></span></div>
+      <div id="m-lista-saude"></div>
+      <div class="modal-section-title" style="margin-top:1.25rem">Projetos de Educação <span id="m-count-educacao"></span></div>
+      <div id="m-lista-educacao"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://vlvoyxgwcxmenbsqhsdf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsdm95eGd3Y3htZW5ic3Foc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzAwNTIsImV4cCI6MjEwMDkwNjA1Mn0.ciHVtlB7YpbWkUzrJVaFMvUqw9WG2fxO5E7gUOj-qDk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Dados reais da CLDF 9ª Legislatura 2023-2026
+// Fotos: portal oficial cl.df.gov.br (uso público)
+const CLDF_BASE = 'https://www.cl.df.gov.br/documents';
+const DEPUTADOS = [
+  {nome:'Chico Vigilante', partido:'PT', foto:`${CLDF_BASE}/10162/33185635/Chico+Vigilante+-+2023-2026.jpg/b2187cf2-5479-e17f-861d-8212b201ac73?version=1.0&t=1740158439023&download=true&imageThumbnail=3`},
+  {nome:'Daniel Donizet', partido:'MDB', foto:`${CLDF_BASE}/10162/33185635/Daniel+Donizet+-+2023-2026.jpg/88c38692-47c4-f811-eac5-4112e9e026b8?version=1.0&t=1740158438669&download=true&imageThumbnail=3`},
+  {nome:'Dayse Amarilio', partido:'PSB', foto:`${CLDF_BASE}/10162/33185635/Dayse+Amarilio.jpg/d884e6ff-0a4b-17c0-d1d4-8d18b845edfb?version=1.0&t=1740158439341&download=true&imageThumbnail=3`},
+  {nome:'Doutora Jane', partido:'Republicanos', foto:`${CLDF_BASE}/10162/33185635/Doutora+Jane.jpg/1e8b063e-d237-70e7-2c8f-ac54f3e5ba44?version=1.0&t=1740158571217&download=true&imageThumbnail=3`},
+  {nome:'Eduardo Pedrosa', partido:'União Brasil', foto:`${CLDF_BASE}/10162/33185635/Eduardo+Pedrosa+-+2023-2026.jpg/ddcae86f-fc1c-a6a3-1457-7445f12ae55a?version=1.0&t=1740158438342&download=true&imageThumbnail=3`},
+  {nome:'Fábio Felix', partido:'PSOL', foto:`${CLDF_BASE}/10162/33185635/F%C3%A1bio+Felix+-+2023-2026.jpg/f2661d4d-16ad-c0c5-80f5-6175a3c2f9cd?version=1.1&t=1740158487152&download=true&imageThumbnail=3`},
+  {nome:'Gabriel Magno', partido:'PT', foto:`${CLDF_BASE}/10162/33185635/Gabriel+Magno.jpg/13eec123-6fcc-a743-1dfc-847c88c9adbd?version=3.0&t=1783368862559&download=true&imageThumbnail=3`},
+  {nome:'Hermeto', partido:'MDB', foto:`${CLDF_BASE}/10162/33185635/Hermeto+2023-2026+%2802%29.jpg/8a33f9ce-bafb-e919-f01e-a6979f364ba1?version=1.0&t=1740158485104&download=true&imageThumbnail=3`},
+  {nome:'Iolando', partido:'MDB', foto:`${CLDF_BASE}/10162/33185635/Iolando.jpg/8ccb3534-262c-af84-0084-d4861ee7a171?version=1.0&t=1783630615354&download=true&imageThumbnail=3`},
+  {nome:'Jaqueline Silva', partido:'MDB', foto:`${CLDF_BASE}/23806148/0/Jaqueline_Silva__opcao_2.jpg/95102c3f-afec-251f-2c9f-031dfbec789f?version=1.0&t=1785170396795&download=true&imageThumbnail=3`},
+  {nome:'Joaquim Roriz Neto', partido:'PL', foto:`${CLDF_BASE}/10162/33185635/Joaquim+Roriz+Neto.jpg/795c7a54-b3bb-b44e-003f-555b6d2da312?version=1.0&t=1740158604290&download=true&imageThumbnail=3`},
+  {nome:'Jorge Vianna', partido:'Democrata', foto:`${CLDF_BASE}/10162/26356646/Jorge-Viana-2-sf.jpg/9aa49269-1d1e-9e94-c0d7-16db78564dff?version=1.0&t=1675287922241&download=true&imageThumbnail=3`},
+  {nome:'João Cardoso', partido:'PL', foto:`${CLDF_BASE}/10162/33185635/Jo%C3%A3o+Cardoso+-+2023-2026.jpg/ce19afda-e115-c8bd-a1b4-e6b51bc206c5?version=1.0&t=1740158488484&download=true&imageThumbnail=3`},
+  {nome:'Martins Machado', partido:'Republicanos', foto:`${CLDF_BASE}/10162/26356646/Martins-Machado.jpg/a1f928b5-91cc-9cfb-4990-f6a43ba26ec5?version=1.0&t=1699894173992&download=true&imageThumbnail=3`},
+  {nome:'Max Maciel', partido:'PSOL', foto:`${CLDF_BASE}/10162/26356646/Max-Maciel.jpg/36b34ddd-3726-e83a-4d2d-8ef5bd588965?version=1.0&t=1672683624189&download=true&imageThumbnail=3`},
+  {nome:'Pastor Daniel de Castro', partido:'PP', foto:`${CLDF_BASE}/10162/33185635/Pastor+Daniel.jpg/f14ee9c6-aa51-290e-9a34-d8377b6ca83f?version=1.0&t=1740158600472&download=true&imageThumbnail=3`},
+  {nome:'Paula Belmonte', partido:'PSDB', foto:`${CLDF_BASE}/10162/33185635/Paulo+Belmonte.jpg/d297da1c-48bc-7e6d-fa35-e3367553a24a?version=1.1&t=1740158485467&download=true&imageThumbnail=3`},
+  {nome:'Pepa', partido:'PP', foto:`${CLDF_BASE}/10162/22349802/Pepa.jpg/8614b90b-7e38-1cfe-3a06-a4c85e008735?version=1.0&t=1670962513441&download=true&imageThumbnail=3`},
+  {nome:'Ricardo Vale', partido:'PT', foto:`${CLDF_BASE}/26233334/0/Ricardo-vale_tratadaC.jpg/679d9c1a-9770-118b-5511-0edb8802676a?version=1.1&t=1699882216846&download=true&imageThumbnail=3`},
+  {nome:'Robério Negreiros', partido:'Podemos', foto:`${CLDF_BASE}/10162/33267976/rob%C3%A9rio.jpg/fa782200-a517-f37a-5a31-eed7f608c1e5?version=1.0&t=1740158412737&download=true&imageThumbnail=3`},
+  {nome:'Rogério Morro da Cruz', partido:'PSD', foto:`${CLDF_BASE}/10162/22349802/Rog%C3%A9rio+Morro+da+Cruz.jpg/211ece5e-f22e-f67c-2c55-2acc7b2ff5a5?version=1.0&t=1744844221427&download=true&imageThumbnail=3`},
+  {nome:'Roosevelt Vilela', partido:'PL', foto:`${CLDF_BASE}/10162/25630419/foto_deputado_roosevelt_vilela.jpg/6d13aa62-3d0e-0ad8-6e36-c7bcfe71de7e?version=1.0&t=1649790382520&download=true&imageThumbnail=3`},
+  {nome:'Thiago Manzoni', partido:'PL', foto:`${CLDF_BASE}/10162/33185635/Thiago+Manzoni.jpg/14fc2a61-eae1-fb75-6869-31ecec609cac?version=1.1&t=1740158488041&download=true&imageThumbnail=3`},
+  {nome:'Wellington Luiz', partido:'MDB', foto:`${CLDF_BASE}/10162/26356646/Wellington-Luis-2.jpg/b793d722-2647-1f3d-5037-5c906f481afe?version=1.0&t=1699894348953&download=true&imageThumbnail=3`},
+];
+
+let proposicoes = [];
+let parlData = [];
+let temaAtivo = 'todos';
+
+async function init() {
+  const { data, error } = await sb
+    .from('proposicoes')
+    .select('numero,tipo,ementa,autor,temas,status,ano,link')
+    .order('ano', { ascending: false })
+    .limit(2000);
+
+  if (error || !data) {
+    document.getElementById('grid').innerHTML = '<div class="empty">Erro ao carregar dados.</div>';
+    return;
+  }
+  proposicoes = data;
+  parlData = buildParlData();
+  render();
+}
+
+function normalizar(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+
+function buildParlData() {
+  const mapa = {};
+  DEPUTADOS.forEach(d => {
+    mapa[normalizar(d.nome)] = { ...d, saude: [], educacao: [] };
+  });
+
+  proposicoes.forEach(p => {
+    if (!p.autor) return;
+    const autores = p.autor.split(/[,;]/).map(a => a.trim()).filter(a => a.length > 2);
+    autores.forEach(autor => {
+      const an = normalizar(autor);
+      let matched = mapa[an];
+      if (!matched) {
+        const palavras = an.split(' ').filter(w => w.length > 3);
+        for (const chave of Object.keys(mapa)) {
+          if (palavras.some(w => chave.includes(w))) { matched = mapa[chave]; break; }
+        }
+      }
+      if (matched) {
+        const temas = p.temas || [];
+        if (temas.includes('saude')) matched.saude.push(p);
+        if (temas.includes('educacao')) matched.educacao.push(p);
+      }
+    });
+  });
+
+  return Object.values(mapa)
+    .filter(p => p.saude.length + p.educacao.length > 0)
+    .sort((a, b) => (b.saude.length + b.educacao.length) - (a.saude.length + a.educacao.length));
+}
+
+function iniciais(nome) {
+  return nome.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function fotoHtml(p, size) {
+  const cls = size === 'lg' ? 'modal-avatar' : 'avatar';
+  if (p.foto) {
+    return `<div class="${cls}"><img src="${p.foto}" alt="${p.nome}" onerror="this.parentNode.textContent='${iniciais(p.nome)}'"></div>`;
+  }
+  return `<div class="${cls}">${iniciais(p.nome)}</div>`;
+}
+
+function setTema(btn) {
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  temaAtivo = btn.dataset.tema;
+  render();
+}
+
+function render() {
+  const q = normalizar(document.getElementById('q').value);
+  let lista = parlData.filter(p => {
+    if (q && !normalizar(p.nome).includes(q) && !normalizar(p.partido).includes(q)) return false;
+    if (temaAtivo === 'saude') return p.saude.length > 0;
+    if (temaAtivo === 'educacao') return p.educacao.length > 0;
+    if (temaAtivo === 'ambos') return p.saude.length > 0 && p.educacao.length > 0;
+    return true;
+  });
+
+  if (!lista.length) {
+    document.getElementById('grid').innerHTML = '<div class="empty">Nenhum parlamentar encontrado nesse filtro.</div>';
+    return;
+  }
+
+  document.getElementById('grid').innerHTML = lista.map(p => {
+    const total = p.saude.length + p.educacao.length;
+    const pctS = total ? Math.round(p.saude.length / total * 100) : 0;
+    const pctE = total ? Math.round(p.educacao.length / total * 100) : 0;
+    return `<div class="parl-card" onclick='abrirFicha(${JSON.stringify(p.nome)})'>
+      <div class="parl-top">
+        ${fotoHtml(p, 'sm')}
+        <div>
+          <div class="parl-nome">${p.nome}</div>
+          <div class="parl-partido">${p.partido}</div>
+        </div>
+      </div>
+      <div class="parl-stats">
+        ${p.saude.length ? `<span class="stat-pill saude">● ${p.saude.length} saúde</span>` : ''}
+        ${p.educacao.length ? `<span class="stat-pill educacao">● ${p.educacao.length} educação</span>` : ''}
+        <span class="stat-pill total">${total} total</span>
+      </div>
+      <div class="parl-bar">
+        <div class="bar-s" style="width:${pctS}%"></div>
+        <div class="bar-e" style="width:${pctE}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirFicha(nome) {
+  const p = parlData.find(x => x.nome === nome);
+  if (!p) return;
+
+  document.getElementById('m-avatar').innerHTML = p.foto
+    ? `<img src="${p.foto}" alt="${p.nome}" onerror="this.parentNode.textContent='${iniciais(p.nome)}'" style="width:100%;height:100%;object-fit:cover;object-position:top;border-radius:50%">`
+    : iniciais(p.nome);
+  document.getElementById('m-nome').textContent = p.nome;
+  document.getElementById('m-partido').textContent = p.partido + ' · CLDF 2023–2026';
+  document.getElementById('m-stats').innerHTML = `
+    ${p.saude.length ? `<span class="stat-pill saude">● ${p.saude.length} saúde</span>` : ''}
+    ${p.educacao.length ? `<span class="stat-pill educacao">● ${p.educacao.length} educação</span>` : ''}
+    <span class="stat-pill total">${p.saude.length + p.educacao.length} projetos</span>`;
+
+  const renderLista = lista => lista.length
+    ? lista.map(pr => `<div class="prop-mini">
+        <div class="prop-mini-num">${pr.numero||''} · ${pr.ano||''}</div>
+        <div class="prop-mini-ementa">${pr.ementa||'—'}</div>
+        <div class="prop-mini-tags">
+          <span class="tag tipo">${pr.tipo||''}</span>
+          ${pr.status ? `<span class="tag tipo">${pr.status}</span>` : ''}
+          ${pr.link ? `<a class="prop-mini-link" href="${pr.link}" target="_blank" rel="noopener">↗ ver no PLE</a>` : ''}
+        </div>
+      </div>`).join('')
+    : '<div class="modal-empty">Nenhum projeto neste tema.</div>';
+
+  document.getElementById('m-count-saude').textContent = `${p.saude.length} projetos`;
+  document.getElementById('m-count-educacao').textContent = `${p.educacao.length} projetos`;
+  document.getElementById('m-lista-saude').innerHTML = renderLista(p.saude);
+  document.getElementById('m-lista-educacao').innerHTML = renderLista(p.educacao);
+  document.getElementById('modal').classList.add('open');
+}
+
+function fecharModal(e) {
+  if (!e || e.target === document.getElementById('modal'))
+    document.getElementById('modal').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ágora BsB — Monitoramento Legislativo do DF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #F5F2EB;
+  --bg2: #EDE9DF;
+  --ink: #1A1714;
+  --ink2: #4A4540;
+  --ink3: #8A8178;
+  --accent: #C84B2F;
+  --accent2: #1B4F8A;
+  --green: #1A6B4A;
+  --border: #D4CEC4;
+  --card: #FDFAF5;
+  --saude: #C84B2F;
+  --educacao: #1B4F8A;
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Newsreader', Georgia, serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* HEADER */
+.masthead {
+  border-bottom: 2px solid var(--ink);
+  padding: 0 2rem;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.masthead-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  gap: 1rem;
+}
+.logo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  line-height: 1;
+}
+.logo-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.nav-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.pill:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pill.saude.active { background: var(--saude); border-color: var(--saude); color: white; }
+.pill.educacao.active { background: var(--educacao); border-color: var(--educacao); color: white; }
+
+.live-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* LAYOUT */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+/* STATS BAR */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.stat {
+  background: var(--card);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-n {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.stat-n.saude { color: var(--saude); }
+.stat-n.educacao { color: var(--educacao); }
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* SEARCH */
+.search-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  font-family: 'Newsreader', serif;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  outline: none;
+}
+.search-input:focus { border-color: var(--ink); }
+.sort-sel {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+/* FEED */
+.section-head {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.count-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  background: var(--bg2);
+  padding: 2px 8px;
+  border-radius: 99px;
+  color: var(--ink3);
+}
+
+.prop-list { display: flex; flex-direction: column; gap: 0; }
+
+.prop-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+.prop-item:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.prop-item:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); }
+.prop-item:hover { background: var(--bg2); }
+.prop-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.prop-item.saude::before { background: var(--saude); }
+.prop-item.educacao::before { background: var(--educacao); }
+.prop-item.ambos::before { background: linear-gradient(var(--saude), var(--educacao)); }
+
+.prop-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.prop-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink3);
+  white-space: nowrap;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.prop-ementa {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.prop-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.03em;
+}
+.tag.saude { background: #FDE8E3; color: var(--saude); }
+.tag.educacao { background: #E3EBF7; color: var(--educacao); }
+.tag.tipo { background: var(--bg2); color: var(--ink3); }
+.prop-autor {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+}
+.prop-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--accent2);
+  text-decoration: none;
+  margin-left: auto;
+}
+.prop-link:hover { text-decoration: underline; }
+
+/* SIDEBAR */
+.sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+/* PARLAMENTARES */
+.parl-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.parl-item:last-child { border-bottom: none; }
+.parl-item:hover .parl-name { color: var(--accent2); }
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink3);
+  flex-shrink: 0;
+}
+.parl-info { flex: 1; min-width: 0; }
+.parl-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.1s;
+}
+.parl-partido {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink3);
+}
+.parl-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink2);
+}
+
+/* STATUS CHART */
+.status-bars { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+  width: 90px;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1; height: 5px;
+  background: var(--bg2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.bar-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+  width: 28px;
+  text-align: right;
+}
+
+/* LOADING / EMPTY */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 12px;
+  color: var(--ink3);
+}
+.spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink3);
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink3);
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1rem;
+}
+.page-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.page-btn:hover:not(:disabled) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.page-info {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 3rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,23,20,0.6);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 2rem;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--ink3);
+  font-family: 'DM Mono', monospace;
+}
+.modal-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--ink3);
+  margin-bottom: 4px;
+}
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+.modal-field { margin-bottom: 0.75rem; }
+.modal-field-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.modal-field-val {
+  font-size: 0.9rem;
+  color: var(--ink2);
+}
+.modal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent2);
+  text-decoration: none;
+  margin-top: 1rem;
+  padding: 6px 12px;
+  border: 1px solid var(--accent2);
+  border-radius: var(--radius);
+}
+.modal-link:hover { background: var(--accent2); color: white; }
+
+@media (max-width: 768px) {
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  .sidebar { order: -1; }
+  .wrap { padding: 1rem; }
+  .masthead { padding: 0 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="logo">
+      <div class="logo-name">Ágora BsB</div>
+      <div class="logo-sub">Monitoramento Legislativo · DF</div>
+    </div>
+    <div class="nav-pills">
+      <button class="pill active" data-tema="todos" onclick="setTema(this)">Todos</button>
+      <button class="pill saude" data-tema="saude" onclick="setTema(this)">Saúde</button>
+      <button class="pill educacao" data-tema="educacao" onclick="setTema(this)">Educação</button>
+    </div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      CLDF ao vivo
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- STATS -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat">
+      <div class="stat-n" id="stat-total">—</div>
+      <div class="stat-label">Proposições total</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n saude" id="stat-saude">—</div>
+      <div class="stat-label">Saúde</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n educacao" id="stat-educacao">—</div>
+      <div class="stat-label">Educação</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="stat-autores">—</div>
+      <div class="stat-label">Parlamentares ativos</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- FEED PRINCIPAL -->
+    <div>
+      <div class="search-row">
+        <input class="search-input" id="q" type="search" placeholder="Buscar por ementa, autor, tipo..." oninput="debuscaRender()">
+        <select class="sort-sel" id="sort" onchange="renderFeed()">
+          <option value="ano">Mais recente</option>
+          <option value="ementa">Ementa A-Z</option>
+          <option value="autor">Autor A-Z</option>
+        </select>
+      </div>
+      <div class="section-head">
+        Proposições legislativas
+        <span class="count-badge" id="feed-count">—</span>
+      </div>
+      <div id="feed" class="prop-list">
+        <div class="loading"><div class="spinner"></div><div class="loading-text">Carregando dados da CLDF...</div></div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <!-- PARLAMENTARES -->
+      <div class="card">
+        <div class="section-head">Parlamentares</div>
+        <div id="parlamentares-list">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div class="card">
+        <div class="section-head">Por situação</div>
+        <div class="status-bars" id="status-bars">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- TIPOS -->
+      <div class="card">
+        <div class="section-head">Por tipo</div>
+        <div class="status-bars" id="tipo-bars">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-text">Ágora BsB · Dados: CLDF / PLE · Atualizado diariamente</div>
+  <div class="footer-text" id="footer-update"></div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="fecharModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <div class="modal-num" id="m-num"></div>
+    <div class="modal-title" id="m-ementa"></div>
+    <div class="modal-field">
+      <div class="modal-field-label">Autor</div>
+      <div class="modal-field-val" id="m-autor"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-field-label">Tipo</div>
+      <div class="modal-field-val" id="m-tipo"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-field-label">Situação</div>
+      <div class="modal-field-val" id="m-status"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-field-label">Temas</div>
+      <div class="modal-field-val" id="m-temas"></div>
+    </div>
+    <div id="m-link-wrap"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://vlvoyxgwcxmenbsqhsdf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bUUa_uzy0-TSuPjvsMIAmA_lp5tku1J';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allData = [];
+let filtrado = [];
+let temaAtivo = 'todos';
+let pagina = 0;
+const POR_PAG = 20;
+let debTimer;
+
+async function init() {
+  const { data, error } = await sb
+    .from('proposicoes')
+    .select('numero,tipo,ementa,autor,temas,status,ano,link,tema_oficial')
+    .order('ano', { ascending: false })
+    .limit(2000);
+
+  if (error) {
+    document.getElementById('feed').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a conexão.</div>';
+    return;
+  }
+
+  allData = data || [];
+  calcStats();
+  renderFeed();
+  renderParlamentares();
+  renderStatusBars();
+  renderTipoBars();
+
+  const ultimo = allData[0];
+  if (ultimo) {
+    document.getElementById('footer-update').textContent = `${allData.length} proposições carregadas`;
+  }
+}
+
+function calcStats() {
+  const total = allData.length;
+  const saude = allData.filter(p => p.temas?.includes('saude')).length;
+  const educ = allData.filter(p => p.temas?.includes('educacao')).length;
+  const autores = new Set(allData.map(p => p.autor).filter(Boolean)).size;
+
+  animNum('stat-total', total);
+  animNum('stat-saude', saude);
+  animNum('stat-educacao', educ);
+  animNum('stat-autores', autores);
+}
+
+function animNum(id, val) {
+  const el = document.getElementById(id);
+  let cur = 0;
+  const step = Math.ceil(val / 30);
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, val);
+    el.textContent = cur.toLocaleString('pt-BR');
+    if (cur >= val) clearInterval(t);
+  }, 30);
+}
+
+function setTema(btn) {
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  temaAtivo = btn.dataset.tema;
+  pagina = 0;
+  renderFeed();
+}
+
+function getFiltrado() {
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const sort = document.getElementById('sort').value;
+
+  let lista = allData.filter(p => {
+    const temaTok = temaAtivo === 'todos' || p.temas?.includes(temaAtivo);
+    if (!temaTok) return false;
+    if (!q) return true;
+    return (
+      (p.ementa || '').toLowerCase().includes(q) ||
+      (p.autor || '').toLowerCase().includes(q) ||
+      (p.tipo || '').toLowerCase().includes(q) ||
+      (p.numero || '').toLowerCase().includes(q)
+    );
+  });
+
+  lista.sort((a, b) => {
+    if (sort === 'ementa') return (a.ementa || '').localeCompare(b.ementa || '');
+    if (sort === 'autor') return (a.autor || '').localeCompare(b.autor || '');
+    return (b.ano || 0) - (a.ano || 0);
+  });
+
+  return lista;
+}
+
+function renderFeed() {
+  filtrado = getFiltrado();
+  const total = filtrado.length;
+  document.getElementById('feed-count').textContent = total.toLocaleString('pt-BR');
+
+  const inicio = pagina * POR_PAG;
+  const pagina_data = filtrado.slice(inicio, inicio + POR_PAG);
+
+  if (!pagina_data.length) {
+    document.getElementById('feed').innerHTML = '<div class="empty">Nenhum resultado encontrado.</div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('feed').innerHTML = pagina_data.map(p => {
+    const temas = p.temas || [];
+    const cls = temas.includes('saude') && temas.includes('educacao') ? 'ambos'
+      : temas.includes('saude') ? 'saude'
+      : temas.includes('educacao') ? 'educacao' : '';
+
+    const tags = temas.map(t =>
+      `<span class="tag ${t}">${t === 'saude' ? 'Saúde' : 'Educação'}</span>`
+    ).join('');
+
+    const linkHtml = p.link
+      ? `<a class="prop-link" href="${p.link}" target="_blank" rel="noopener">↗ PLE</a>`
+      : '';
+
+    return `<div class="prop-item ${cls}" onclick="abrirModal(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+      <div class="prop-header">
+        <span class="prop-num">${p.numero || ''}</span>
+        <span class="prop-ementa">${p.ementa || '—'}</span>
+      </div>
+      <div class="prop-meta">
+        ${tags}
+        <span class="tag tipo">${p.tipo || ''}</span>
+        <span class="prop-autor">${p.autor || ''}</span>
+        ${linkHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPagination(total);
+}
+
+function renderPagination(total) {
+  const totalPags = Math.ceil(total / POR_PAG);
+  if (totalPags <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+
+  document.getElementById('pagination').innerHTML = `
+    <button class="page-btn" onclick="irPag(${pagina - 1})" ${pagina === 0 ? 'disabled' : ''}>← Anterior</button>
+    <span class="page-info">${pagina + 1} / ${totalPags}</span>
+    <button class="page-btn" onclick="irPag(${pagina + 1})" ${pagina >= totalPags - 1 ? 'disabled' : ''}>Próxima →</button>
+  `;
+}
+
+function irPag(n) {
+  pagina = n;
+  renderFeed();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function debuscaRender() {
+  clearTimeout(debTimer);
+  debTimer = setTimeout(() => { pagina = 0; renderFeed(); }, 300);
+}
+
+function renderParlamentares() {
+  const contagem = {};
+  allData.forEach(p => {
+    if (!p.autor) return;
+    const autores = p.autor.split(',').map(a => a.trim()).filter(Boolean);
+    autores.forEach(a => {
+      if (a.length > 2) contagem[a] = (contagem[a] || 0) + 1;
+    });
+  });
+
+  const sorted = Object.entries(contagem)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  document.getElementById('parlamentares-list').innerHTML = sorted.map(([nome, n]) => {
+    const iniciais = nome.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('');
+    return `<div class="parl-item" onclick="buscarAutor('${nome.replace(/'/g, "\\'")}')">
+      <div class="avatar">${iniciais}</div>
+      <div class="parl-info">
+        <div class="parl-name">${nome}</div>
+      </div>
+      <div class="parl-count">${n}</div>
+    </div>`;
+  }).join('');
+}
+
+function buscarAutor(nome) {
+  document.getElementById('q').value = nome;
+  temaAtivo = 'todos';
+  document.querySelectorAll('.pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.tema === 'todos');
+  });
+  pagina = 0;
+  renderFeed();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderStatusBars() {
+  const contagem = {};
+  allData.forEach(p => {
+    const s = (p.status || 'Sem informação').slice(0, 30);
+    contagem[s] = (contagem[s] || 0) + 1;
+  });
+  const sorted = Object.entries(contagem).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = sorted[0]?.[1] || 1;
+  const cores = ['#C84B2F', '#1B4F8A', '#1A6B4A', '#7B5EA7', '#B87C2A'];
+
+  document.getElementById('status-bars').innerHTML = sorted.map(([s, n], i) => `
+    <div class="bar-row">
+      <div class="bar-label" title="${s}">${s.length > 14 ? s.slice(0, 14) + '…' : s}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/max*100)}%;background:${cores[i]}"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`).join('');
+}
+
+function renderTipoBars() {
+  const contagem = {};
+  allData.forEach(p => {
+    const t = (p.tipo || 'Outro').slice(0, 20);
+    contagem[t] = (contagem[t] || 0) + 1;
+  });
+  const sorted = Object.entries(contagem).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = sorted[0]?.[1] || 1;
+  const cores = ['#1B4F8A', '#C84B2F', '#1A6B4A', '#7B5EA7', '#B87C2A'];
+
+  document.getElementById('tipo-bars').innerHTML = sorted.map(([t, n], i) => `
+    <div class="bar-row">
+      <div class="bar-label" title="${t}">${t.length > 14 ? t.slice(0, 14) + '…' : t}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/max*100)}%;background:${cores[i]}"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`).join('');
+}
+
+function abrirModal(p) {
+  document.getElementById('m-num').textContent = p.numero || '';
+  document.getElementById('m-ementa').textContent = p.ementa || '—';
+  document.getElementById('m-autor').textContent = p.autor || '—';
+  document.getElementById('m-tipo').textContent = p.tipo || '—';
+  document.getElementById('m-status').textContent = p.status || '—';
+  document.getElementById('m-temas').textContent = (p.temas || [])
+    .map(t => t === 'saude' ? 'Saúde' : 'Educação').join(', ') || '—';
+  document.getElementById('m-link-wrap').innerHTML = p.link
+    ? `<a class="modal-link" href="${p.link}" target="_blank" rel="noopener">↗ Ver no PLE/CLDF</a>` : '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function fecharModal(e) {
+  if (!e || e.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+init();
+</script>
+</body>
+</html>
