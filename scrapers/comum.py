@@ -88,13 +88,12 @@ def registrar_coleta(supabase, fonte: str, status: str, registros: int, detalhe:
 
 # Filtro negativo do classificador DODF — evita falsos positivos comuns
 EXCLUSOES_CLASSIFICADOR = [
+    "saude financeira",
     "saúde financeira",
+    "saude fiscal",
     "saúde fiscal",
+    "atestado de saude ocupacional",
     "atestado de saúde ocupacional",
-    "escola de samba",
-    "escola de condutores",
-    "auto escola",
-    "autoescola",
 ]
 
 
