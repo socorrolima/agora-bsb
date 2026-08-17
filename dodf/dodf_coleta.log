@@ -68,3 +68,33 @@
 2026-08-17 13:31:38,655 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71946fd0>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
 2026-08-17 13:32:20,780 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71947390>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
 2026-08-17 13:32:20,780 INFO Coleta finalizada: 0 registros salvos no Supabase
+2026-08-17 16:47:35,696 INFO Iniciando coleta DODF — 17/08/2026
+2026-08-17 16:47:35,696 INFO Timestamp: 1786935600
+2026-08-17 16:47:36,484 INFO Tema=saude pagina=1/14 materias=10 total=135
+2026-08-17 16:47:38,789 INFO Tema=saude pagina=2/14 materias=10 total=135
+2026-08-17 16:47:41,035 INFO Tema=saude pagina=3/14 materias=10 total=135
+2026-08-17 16:47:43,705 INFO Tema=saude pagina=4/14 materias=10 total=135
+2026-08-17 16:47:46,011 INFO Tema=saude pagina=5/14 materias=10 total=135
+2026-08-17 16:47:48,293 INFO Tema=saude pagina=6/14 materias=10 total=135
+2026-08-17 16:47:50,592 INFO Tema=saude pagina=7/14 materias=10 total=135
+2026-08-17 16:47:52,929 INFO Tema=saude pagina=8/14 materias=10 total=135
+2026-08-17 16:47:55,165 INFO Tema=saude pagina=9/14 materias=10 total=135
+2026-08-17 16:47:57,408 INFO Tema=saude pagina=10/14 materias=10 total=135
+2026-08-17 16:47:59,893 INFO Tema=saude pagina=11/14 materias=10 total=135
+2026-08-17 16:48:02,236 INFO Tema=saude pagina=12/14 materias=10 total=135
+2026-08-17 16:48:04,370 INFO Tema=saude pagina=13/14 materias=10 total=135
+2026-08-17 16:48:06,613 INFO Tema=saude pagina=14/14 materias=5 total=135
+2026-08-17 16:48:06,613 INFO Saude: 135 materias
+2026-08-17 16:48:09,043 INFO Tema=educacao pagina=1/6 materias=10 total=55
+2026-08-17 16:48:10,943 INFO Tema=educacao pagina=2/6 materias=10 total=55
+2026-08-17 16:48:12,945 INFO Tema=educacao pagina=3/6 materias=10 total=55
+2026-08-17 16:48:14,914 INFO Tema=educacao pagina=4/6 materias=10 total=55
+2026-08-17 16:48:16,910 INFO Tema=educacao pagina=5/6 materias=10 total=55
+2026-08-17 16:48:18,863 INFO Tema=educacao pagina=6/6 materias=5 total=55
+2026-08-17 16:48:18,863 INFO Educacao: 55 materias
+2026-08-17 16:48:18,863 INFO Total unico: 190
+2026-08-17 16:48:19,837 INFO Lote 1 salvo: 50 registros
+2026-08-17 16:48:20,540 INFO Lote 2 salvo: 50 registros
+2026-08-17 16:48:21,825 INFO Lote 3 salvo: 50 registros
+2026-08-17 16:48:22,466 INFO Lote 4 salvo: 40 registros
+2026-08-17 16:48:22,467 INFO Coleta finalizada: 190 registros salvos no Supabase
