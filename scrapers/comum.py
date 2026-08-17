@@ -100,10 +100,14 @@ EXCLUSOES_CLASSIFICADOR = [
 def classificar_com_exclusoes(texto: str, tema_sugerido: str) -> list[str]:
     """
     Confirma o tema sugerido pelo termo de busca,
-    aplicando o filtro negativo de exclusões.
+    aplicando o filtro negativo de exclusoes.
     """
-    texto_lower = texto.lower()
-    if any(exc in texto_lower for exc in EXCLUSOES_CLASSIFICADOR):
+    import unicodedata
+    def norm(s):
+        return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
+    
+    texto_norm = norm(texto)
+    if any(norm(exc) in texto_norm for exc in EXCLUSOES_CLASSIFICADOR):
         return []
     return [tema_sugerido]
 
