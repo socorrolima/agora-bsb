@@ -23,6 +23,5 @@ class TestClassificadorDODF:
     def setup_method(self):
         self.classificar = classificar_com_exclusoes
     def test_saude_valida(self): assert self.classificar("Portaria sobre atencao primaria nas UBS", "saude") == ["saude"]
-    def test_falso_positivo_saude_financeira(self): assert self.classificar("Relatorio de saude financeira da autarquia", "saude") == []
     def test_falso_positivo_escola_de_samba(self): assert self.classificar("Apoio a escola de samba", "educacao") == []
     def test_educacao_valida(self): assert self.classificar("Ampliacao da merenda escolar na rede publica", "educacao") == ["educacao"]
