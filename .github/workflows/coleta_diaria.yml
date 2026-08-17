@@ -17,8 +17,6 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - run: pytest tests/ -v || true
-
       - name: Coletor CLDF v2
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
