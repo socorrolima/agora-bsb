@@ -1,4 +1,4 @@
-name: Coleta diaria CLDF e DODF
+name: Coleta diaria DODF
 on:
   workflow_dispatch:
   schedule:
@@ -12,11 +12,6 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - name: Coletor CLDF v2
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python scrapers/coletor_cldf_v2.py
       - name: Coletor SINJ-DODF
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
