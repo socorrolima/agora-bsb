@@ -5,6 +5,11 @@ API oficial do PLE: https://ple.cl.df.gov.br/pleservico/api/public
 Temas confirmados em 29/07/2026:
   value=15 label='Educacao'
   value=24 label='Saude'
+
+Expandido em 02/10/2026:
+  value=2  label='Assistencia Social'
+  value=18 label='Habitacao'
+  value=25 label='Seguranca'
 """
 
 import os
@@ -33,6 +38,9 @@ API_BASE = "https://ple.cl.df.gov.br/pleservico/api/public"
 TEMAS_FIXOS = {
     15: "Educacao",
     24: "Saude",
+    2:  "Assistencia Social",
+    18: "Habitacao",
+    25: "Seguranca",
 }
 
 PAGE_SIZE = 50
@@ -50,6 +58,12 @@ def normalizar_tema_local(nome_tema):
         return "saude"
     if "educac" in nome:
         return "educacao"
+    if "assistencia" in nome or "social" in nome:
+        return "assistencia_social"
+    if "habitac" in nome:
+        return "habitacao"
+    if "seguranc" in nome:
+        return "seguranca"
     return "outro"
 
 

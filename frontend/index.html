@@ -21,6 +21,9 @@
   --card: #FDFAF5;
   --saude: #C84B2F;
   --educacao: #1B4F8A;
+  --assistencia_social: #1A6B4A;
+  --habitacao: #7B5EA7;
+  --seguranca: #B87C2A;
   --radius: 4px;
 }
 
@@ -94,6 +97,9 @@ body {
 .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .pill.saude.active { background: var(--saude); border-color: var(--saude); color: white; }
 .pill.educacao.active { background: var(--educacao); border-color: var(--educacao); color: white; }
+.pill.assistencia_social.active { background: var(--assistencia_social); border-color: var(--assistencia_social); color: white; }
+.pill.habitacao.active { background: var(--habitacao); border-color: var(--habitacao); color: white; }
+.pill.seguranca.active { background: var(--seguranca); border-color: var(--seguranca); color: white; }
 
 .live-badge {
   font-family: 'DM Mono', monospace;
@@ -118,7 +124,7 @@ body {
 /* STATS BAR */
 .stats-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -128,7 +134,7 @@ body {
 }
 .stat {
   background: var(--card);
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -136,15 +142,18 @@ body {
 .stat-n {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 2rem;
+  font-size: 1.8rem;
   line-height: 1;
   color: var(--ink);
 }
 .stat-n.saude { color: var(--saude); }
 .stat-n.educacao { color: var(--educacao); }
+.stat-n.assistencia_social { color: var(--assistencia_social); }
+.stat-n.habitacao { color: var(--habitacao); }
+.stat-n.seguranca { color: var(--seguranca); }
 .stat-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--ink3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -235,7 +244,10 @@ body {
 }
 .prop-item.saude::before { background: var(--saude); }
 .prop-item.educacao::before { background: var(--educacao); }
-.prop-item.ambos::before { background: linear-gradient(var(--saude), var(--educacao)); }
+.prop-item.assistencia_social::before { background: var(--assistencia_social); }
+.prop-item.habitacao::before { background: var(--habitacao); }
+.prop-item.seguranca::before { background: var(--seguranca); }
+.prop-item.multi::before { background: linear-gradient(var(--saude), var(--educacao)); }
 
 .prop-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
 .prop-num {
@@ -267,6 +279,9 @@ body {
 }
 .tag.saude { background: #FDE8E3; color: var(--saude); }
 .tag.educacao { background: #E3EBF7; color: var(--educacao); }
+.tag.assistencia_social { background: #E3F0EB; color: var(--assistencia_social); }
+.tag.habitacao { background: #EDE8F5; color: var(--habitacao); }
+.tag.seguranca { background: #F5EDE3; color: var(--seguranca); }
 .tag.tipo { background: var(--bg2); color: var(--ink3); }
 .prop-autor {
   font-family: 'DM Mono', monospace;
@@ -514,12 +529,17 @@ body {
 }
 .modal-link:hover { background: var(--accent2); color: white; }
 
-@media (max-width: 768px) {
-  .stats-bar { grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px) {
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
   .grid { grid-template-columns: 1fr; }
   .sidebar { order: -1; }
   .wrap { padding: 1rem; }
   .masthead { padding: 0 1rem; }
+  .nav-pills { gap: 3px; }
+  .pill { font-size: 0.65rem; padding: 4px 10px; }
+}
+@media (max-width: 500px) {
+  .stats-bar { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -535,6 +555,9 @@ body {
       <button class="pill active" data-tema="todos" onclick="setTema(this)">Todos</button>
       <button class="pill saude" data-tema="saude" onclick="setTema(this)">Saúde</button>
       <button class="pill educacao" data-tema="educacao" onclick="setTema(this)">Educação</button>
+      <button class="pill assistencia_social" data-tema="assistencia_social" onclick="setTema(this)">Assist. Social</button>
+      <button class="pill habitacao" data-tema="habitacao" onclick="setTema(this)">Habitação</button>
+      <button class="pill seguranca" data-tema="seguranca" onclick="setTema(this)">Segurança</button>
     </div>
     <div class="live-badge">
       <div class="live-dot"></div>
@@ -548,7 +571,7 @@ body {
   <div class="stats-bar" id="stats-bar">
     <div class="stat">
       <div class="stat-n" id="stat-total">—</div>
-      <div class="stat-label">Proposições total</div>
+      <div class="stat-label">Total</div>
     </div>
     <div class="stat">
       <div class="stat-n saude" id="stat-saude">—</div>
@@ -559,8 +582,16 @@ body {
       <div class="stat-label">Educação</div>
     </div>
     <div class="stat">
-      <div class="stat-n" id="stat-autores">—</div>
-      <div class="stat-label">Parlamentares ativos</div>
+      <div class="stat-n assistencia_social" id="stat-assistencia">—</div>
+      <div class="stat-label">Assist. Social</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n habitacao" id="stat-habitacao">—</div>
+      <div class="stat-label">Habitação</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n seguranca" id="stat-seguranca">—</div>
+      <div class="stat-label">Segurança</div>
     </div>
   </div>
 
@@ -650,6 +681,14 @@ const SUPABASE_URL = 'https://vlvoyxgwcxmenbsqhsdf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_bUUa_uzy0-TSuPjvsMIAmA_lp5tku1J';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const TEMA_LABEL = {
+  saude: 'Saúde',
+  educacao: 'Educação',
+  assistencia_social: 'Assist. Social',
+  habitacao: 'Habitação',
+  seguranca: 'Segurança',
+};
+
 let allData = [];
 let filtrado = [];
 let temaAtivo = 'todos';
@@ -662,7 +701,7 @@ async function init() {
     .from('proposicoes')
     .select('numero,tipo,ementa,autor,temas,status,ano,link,tema_oficial')
     .order('ano', { ascending: false })
-    .limit(2000);
+    .limit(3000);
 
   if (error) {
     document.getElementById('feed').innerHTML = '<div class="empty">Erro ao carregar dados. Verifique a conexão.</div>';
@@ -676,8 +715,7 @@ async function init() {
   renderStatusBars();
   renderTipoBars();
 
-  const ultimo = allData[0];
-  if (ultimo) {
+  if (allData.length) {
     document.getElementById('footer-update').textContent = `${allData.length} proposições carregadas`;
   }
 }
@@ -686,18 +724,23 @@ function calcStats() {
   const total = allData.length;
   const saude = allData.filter(p => p.temas?.includes('saude')).length;
   const educ = allData.filter(p => p.temas?.includes('educacao')).length;
-  const autores = new Set(allData.map(p => p.autor).filter(Boolean)).size;
+  const assist = allData.filter(p => p.temas?.includes('assistencia_social')).length;
+  const hab = allData.filter(p => p.temas?.includes('habitacao')).length;
+  const seg = allData.filter(p => p.temas?.includes('seguranca')).length;
 
   animNum('stat-total', total);
   animNum('stat-saude', saude);
   animNum('stat-educacao', educ);
-  animNum('stat-autores', autores);
+  animNum('stat-assistencia', assist);
+  animNum('stat-habitacao', hab);
+  animNum('stat-seguranca', seg);
 }
 
 function animNum(id, val) {
   const el = document.getElementById(id);
+  if (!el) return;
   let cur = 0;
-  const step = Math.ceil(val / 30);
+  const step = Math.max(1, Math.ceil(val / 30));
   const t = setInterval(() => {
     cur = Math.min(cur + step, val);
     el.textContent = cur.toLocaleString('pt-BR');
@@ -754,12 +797,12 @@ function renderFeed() {
 
   document.getElementById('feed').innerHTML = pagina_data.map(p => {
     const temas = p.temas || [];
-    const cls = temas.includes('saude') && temas.includes('educacao') ? 'ambos'
-      : temas.includes('saude') ? 'saude'
-      : temas.includes('educacao') ? 'educacao' : '';
+    // cor da barra lateral: primeiro tema encontrado na ordem de prioridade
+    const ORDER = ['saude','educacao','assistencia_social','habitacao','seguranca'];
+    const cls = temas.length > 1 ? 'multi' : (ORDER.find(t => temas.includes(t)) || '');
 
     const tags = temas.map(t =>
-      `<span class="tag ${t}">${t === 'saude' ? 'Saúde' : 'Educação'}</span>`
+      `<span class="tag ${t}">${TEMA_LABEL[t] || t}</span>`
     ).join('');
 
     const linkHtml = p.link
@@ -885,7 +928,7 @@ function abrirModal(p) {
   document.getElementById('m-tipo').textContent = p.tipo || '—';
   document.getElementById('m-status').textContent = p.status || '—';
   document.getElementById('m-temas').textContent = (p.temas || [])
-    .map(t => t === 'saude' ? 'Saúde' : 'Educação').join(', ') || '—';
+    .map(t => TEMA_LABEL[t] || t).join(', ') || '—';
   document.getElementById('m-link-wrap').innerHTML = p.link
     ? `<a class="modal-link" href="${p.link}" target="_blank" rel="noopener">↗ Ver no PLE/CLDF</a>` : '';
   document.getElementById('modal').classList.add('open');

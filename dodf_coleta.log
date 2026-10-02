@@ -1,0 +1,21 @@
+2026-10-02 15:56:13,424 INFO Iniciando coleta DODF — 02/10/2026
+2026-10-02 15:56:13,425 INFO Timestamp: 1790910000
+2026-10-02 15:56:14,310 INFO Tema=saude pagina=1/10 materias=10 total=91
+2026-10-02 15:56:16,357 INFO Tema=saude pagina=2/10 materias=10 total=91
+2026-10-02 15:56:18,404 INFO Tema=saude pagina=3/10 materias=10 total=91
+2026-10-02 15:56:20,470 INFO Tema=saude pagina=4/10 materias=10 total=91
+2026-10-02 15:56:22,624 INFO Tema=saude pagina=5/10 materias=10 total=91
+2026-10-02 15:56:24,721 INFO Tema=saude pagina=6/10 materias=10 total=91
+2026-10-02 15:56:26,798 INFO Tema=saude pagina=7/10 materias=10 total=91
+2026-10-02 15:56:31,813 INFO Tema=saude pagina=8/10 materias=10 total=91
+2026-10-02 15:56:33,977 INFO Tema=saude pagina=9/10 materias=10 total=91
+2026-10-02 15:56:36,068 INFO Tema=saude pagina=10/10 materias=1 total=91
+2026-10-02 15:56:36,079 INFO Saude: 91 materias
+2026-10-02 15:56:38,564 INFO Tema=educacao pagina=1/2 materias=10 total=18
+2026-10-02 15:56:40,484 INFO Tema=educacao pagina=2/2 materias=8 total=18
+2026-10-02 15:56:40,484 INFO Educacao: 18 materias
+2026-10-02 15:56:40,485 INFO Total unico: 109
+2026-10-02 15:56:42,837 INFO Lote 1 salvo: 50 registros
+2026-10-02 15:56:44,640 INFO Lote 2 salvo: 50 registros
+2026-10-02 15:56:46,686 INFO Lote 3 salvo: 9 registros
+2026-10-02 15:56:46,691 INFO Coleta finalizada: 109 registros salvos no Supabase
