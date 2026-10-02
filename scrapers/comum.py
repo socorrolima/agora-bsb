@@ -88,26 +88,23 @@ def registrar_coleta(supabase, fonte: str, status: str, registros: int, detalhe:
 
 # Filtro negativo do classificador DODF — evita falsos positivos comuns
 EXCLUSOES_CLASSIFICADOR = [
-    "saude financeira",
     "saúde financeira",
-    "saude fiscal",
     "saúde fiscal",
-    "atestado de saude ocupacional",
     "atestado de saúde ocupacional",
+    "escola de samba",
+    "escola de condutores",
+    "auto escola",
+    "autoescola",
 ]
 
 
 def classificar_com_exclusoes(texto: str, tema_sugerido: str) -> list[str]:
     """
     Confirma o tema sugerido pelo termo de busca,
-    aplicando o filtro negativo de exclusoes.
+    aplicando o filtro negativo de exclusões.
     """
-    import unicodedata
-    def norm(s):
-        return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
-    
-    texto_norm = norm(texto)
-    if any(norm(exc) in texto_norm for exc in EXCLUSOES_CLASSIFICADOR):
+    texto_lower = texto.lower()
+    if any(exc in texto_lower for exc in EXCLUSOES_CLASSIFICADOR):
         return []
     return [tema_sugerido]
 
