@@ -1,0 +1,70 @@
+2026-08-17 10:44:25,391 INFO Iniciando coleta DODF — 17/08/2026
+2026-08-17 10:44:25,392 INFO Timestamp: 1786935600
+2026-08-17 10:44:25,685 ERROR Erro pagina 1: HTTPSConnectionPool(host='www.dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')))
+2026-08-17 10:44:25,685 WARNING Resposta invalida tema=saude pagina=1
+2026-08-17 10:44:25,685 INFO Saude: 0 materias
+2026-08-17 10:44:27,917 ERROR Erro pagina 1: HTTPSConnectionPool(host='www.dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')))
+2026-08-17 10:44:27,918 WARNING Resposta invalida tema=educacao pagina=1
+2026-08-17 10:44:27,918 INFO Educacao: 0 materias
+2026-08-17 10:44:27,918 INFO Total unico: 0
+2026-08-17 10:44:27,918 INFO Coleta finalizada: 0 registros salvos no Supabase
+2026-08-17 10:46:06,428 INFO Iniciando coleta DODF — 17/08/2026
+2026-08-17 10:46:06,429 INFO Timestamp: 1786935600
+2026-08-17 10:46:07,387 INFO Tema=saude pagina=1/14 materias=10 total=135
+2026-08-17 10:46:09,689 INFO Tema=saude pagina=2/14 materias=10 total=135
+2026-08-17 10:46:12,709 INFO Tema=saude pagina=3/14 materias=10 total=135
+2026-08-17 10:46:15,069 INFO Tema=saude pagina=4/14 materias=10 total=135
+2026-08-17 10:46:17,322 INFO Tema=saude pagina=5/14 materias=10 total=135
+2026-08-17 10:46:19,657 INFO Tema=saude pagina=6/14 materias=10 total=135
+2026-08-17 10:46:21,903 INFO Tema=saude pagina=7/14 materias=10 total=135
+2026-08-17 10:46:24,271 INFO Tema=saude pagina=8/14 materias=10 total=135
+2026-08-17 10:46:26,543 INFO Tema=saude pagina=9/14 materias=10 total=135
+2026-08-17 10:46:28,711 INFO Tema=saude pagina=10/14 materias=10 total=135
+2026-08-17 10:46:31,030 INFO Tema=saude pagina=11/14 materias=10 total=135
+2026-08-17 10:46:33,288 INFO Tema=saude pagina=12/14 materias=10 total=135
+2026-08-17 10:46:35,828 INFO Tema=saude pagina=13/14 materias=10 total=135
+2026-08-17 10:46:38,223 INFO Tema=saude pagina=14/14 materias=5 total=135
+2026-08-17 10:46:38,223 INFO Saude: 135 materias
+2026-08-17 10:46:40,857 INFO Tema=educacao pagina=1/6 materias=10 total=55
+2026-08-17 10:46:42,852 INFO Tema=educacao pagina=2/6 materias=10 total=55
+2026-08-17 10:46:45,107 INFO Tema=educacao pagina=3/6 materias=10 total=55
+2026-08-17 10:46:47,162 INFO Tema=educacao pagina=4/6 materias=10 total=55
+2026-08-17 10:46:49,269 INFO Tema=educacao pagina=5/6 materias=10 total=55
+2026-08-17 10:46:51,280 INFO Tema=educacao pagina=6/6 materias=5 total=55
+2026-08-17 10:46:51,281 INFO Educacao: 55 materias
+2026-08-17 10:46:51,282 INFO Total unico: 190
+2026-08-17 10:47:33,404 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x26ce4776490>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 10:48:15,506 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x26ce4776d50>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 10:48:57,598 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x26ce4776fd0>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 10:49:39,658 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x26ce4777390>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 10:49:39,659 INFO Coleta finalizada: 0 registros salvos no Supabase
+2026-08-17 13:28:44,393 INFO Iniciando coleta DODF — 17/08/2026
+2026-08-17 13:28:44,394 INFO Timestamp: 1786935600
+2026-08-17 13:28:45,282 INFO Tema=saude pagina=1/14 materias=10 total=135
+2026-08-17 13:28:47,491 INFO Tema=saude pagina=2/14 materias=10 total=135
+2026-08-17 13:28:49,742 INFO Tema=saude pagina=3/14 materias=10 total=135
+2026-08-17 13:28:51,988 INFO Tema=saude pagina=4/14 materias=10 total=135
+2026-08-17 13:28:54,226 INFO Tema=saude pagina=5/14 materias=10 total=135
+2026-08-17 13:29:01,502 INFO Tema=saude pagina=6/14 materias=10 total=135
+2026-08-17 13:29:03,685 INFO Tema=saude pagina=7/14 materias=10 total=135
+2026-08-17 13:29:05,909 INFO Tema=saude pagina=8/14 materias=10 total=135
+2026-08-17 13:29:08,232 INFO Tema=saude pagina=9/14 materias=10 total=135
+2026-08-17 13:29:10,527 INFO Tema=saude pagina=10/14 materias=10 total=135
+2026-08-17 13:29:12,952 INFO Tema=saude pagina=11/14 materias=10 total=135
+2026-08-17 13:29:15,226 INFO Tema=saude pagina=12/14 materias=10 total=135
+2026-08-17 13:29:17,546 INFO Tema=saude pagina=13/14 materias=10 total=135
+2026-08-17 13:29:19,748 INFO Tema=saude pagina=14/14 materias=5 total=135
+2026-08-17 13:29:19,748 INFO Saude: 135 materias
+2026-08-17 13:29:22,288 INFO Tema=educacao pagina=1/6 materias=10 total=55
+2026-08-17 13:29:24,374 INFO Tema=educacao pagina=2/6 materias=10 total=55
+2026-08-17 13:29:26,410 INFO Tema=educacao pagina=3/6 materias=10 total=55
+2026-08-17 13:29:28,365 INFO Tema=educacao pagina=4/6 materias=10 total=55
+2026-08-17 13:29:30,418 INFO Tema=educacao pagina=5/6 materias=10 total=55
+2026-08-17 13:29:32,414 INFO Tema=educacao pagina=6/6 materias=5 total=55
+2026-08-17 13:29:32,415 INFO Educacao: 55 materias
+2026-08-17 13:29:32,416 INFO Total unico: 190
+2026-08-17 13:30:14,506 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71946490>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 13:30:56,565 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71946d50>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 13:31:38,655 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71946fd0>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 13:32:20,780 ERROR Erro ao salvar: HTTPSConnectionPool(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443): Max retries exceeded with url: /rest/v1/publicacoes_dodf?on_conflict=numero,fonte (Caused by ConnectTimeoutError(<HTTPSConnection(host='vlvoyxgwcxmenbsqhsdf.supabase.co', port=443) at 0x28c71947390>, 'Connection to vlvoyxgwcxmenbsqhsdf.supabase.co timed out. (connect timeout=30)'))
+2026-08-17 13:32:20,780 INFO Coleta finalizada: 0 registros salvos no Supabase
